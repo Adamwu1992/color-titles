@@ -1,0 +1,14 @@
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  font-size: 0;
+  background-color: #263238;
+}
+
+canvas {
+  transition: transform 1s;
+}
