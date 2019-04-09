@@ -4,12 +4,25 @@
   "description": "show texts with colorful titles",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server"
   },
   "keywords": [
     "color",
     "titles"
   ],
   "author": "Adam Wu<adamwu1992@163.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "css-loader": "^2.1.1",
+    "less-loader": "^4.1.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.2.1"
+  },
+  "dependencies": {
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.4.2"
+  }
 }

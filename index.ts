@@ -1,4 +1,6 @@
-const $canvas = document.querySelector('#app');
+import './index.css';
+
+const $canvas: HTMLCanvasElement = document.querySelector('#app');
 
 let ctx;
 try {
