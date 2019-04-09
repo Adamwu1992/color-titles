@@ -1,50 +1,165 @@
 import './index.css';
+import { getColor } from './src/color';
+import { getFontSize } from './src/font-size';
+import { getText } from './src/text';
 
 const $canvas: HTMLCanvasElement = document.querySelector('#app');
 
-let ctx;
-try {
-  ctx = $canvas.getContext('2d');
-} catch (e) {}
+let ctx: CanvasRenderingContext2D;
+
 
 function beforeLaunch() {
   const width = document.body.clientWidth;
   const height = document.body.clientHeight;
   $canvas.setAttribute('width', `${width}`);
   $canvas.setAttribute('height', `${height}`);
+
+  try {
+    ctx = $canvas.getContext('2d');
+  } catch (e) {}
+
+  ctx.translate(width / 2, height /2);
 }
 
 beforeLaunch();
 
-const texts = [
-  'hello world',
-  '绘制的最大宽度是可选的',
-  '展示了textBaseline'
-]
+type Rect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotate: Rotate
+}
 
-ctx.font = '40px Yahei';
-ctx.fillStyle = '#ff6d00';
-ctx.fillText(texts[0], 300, 400);
+let lastRect = {
+  x: 100,
+  y: 100,
+  width: 0,
+  height: 0,
+  rotate: 0
+};
 
-ctx.font = '50px Yahei';
-ctx.fillStyle = '#2e7d32';
-ctx.fillText(texts[1], 300, 450);
+/**
+ * Rotate
+ * - 0 旋转0du
+ * - 1 顺时针旋转90deg
+ * - 2 顺时针旋转180deg
+ * - 3 顺时针旋转270deg
+ */
+type Rotate = 0 | 1 | 2 | 3;
 
-ctx.rotate(Math.PI * .5);
+let currentRotate = 0;
 
-ctx.font = '45px Yahei';
-ctx.fillStyle = '#00b0ff';
-ctx.fillText(texts[2], 460, -300);
+type Point = {
+  x: number;
+  y: number;
+}
 
-ctx.font = '35px Yahei';
-ctx.fillStyle = '#c6ff00';
-ctx.fillText(texts[0], 460, -265);
+/**
+ * getPosition 获取传入矩形的布局位置
+ * @param w 矩形的宽
+ * @param h 矩形的高
+ */
+function getPosition(w: number, h: number): Point {
 
-ctx.rotate(Math.PI * .5);
+  const { rotate } = lastRect;
+  if (rotate === currentRotate) {
+    return {
+      x: lastRect.x,
+      y: lastRect.y + h
+    }
+  } else if (currentRotate - rotate === 1 || currentRotate - rotate === -3) {
+    // 从0度转到90时
+    // 原来矩形的y坐标是新矩形的x坐标，+10边距
+    // 原来矩形的x坐标和新矩形的y坐标根据原y轴对称
+    return {
+      x: lastRect.y + 10,
+      y: -1 * lastRect.x
+    }
+  } else if (rotate - currentRotate === 1) {
+    console.log('lllll', lastRect.width);
+    return {
+      x: -1 * (lastRect.y + w),
+      y: lastRect.x + lastRect.width
+    }
+  }
+  throw new Error(`rotate: ${rotate}, currentRotate: ${currentRotate}`);
 
-ctx.font = '40px Yahei';
-ctx.fillStyle = '#8d6e63';
-const w = ctx.measureText(texts[1]);
-console.log(w);
-ctx.fillText(texts[1], -w.width, -200);
+}
+
+function insertWord() {
+  const h = getFontSize();
+  const font = `${h}px Yahei`;
+  const fillStyle = getColor();
+  const text = getText();
+
+  ctx.save();
+  ctx.font = font;
+  ctx.fillStyle = fillStyle;
+
+  const { width } = ctx.measureText(text);
+  const height = h;
+
+  const { x, y } = getPosition(width, height);
+
+
+  
+  ctx.fillText(text, x, y);
+  ctx.restore()
+
+  lastRect = {
+    x,
+    y,
+    width: width,
+    height: height,
+    rotate: currentRotate
+  }
+
+  console.log(text, lastRect, text);
+}
+
+function rotate() {
+  $canvas.setAttribute('style', 'transform: rotate(180deg)');
+  ctx.rotate(Math.PI * .5);
+  currentRotate += 1
+}
+
+/**
+ * 顺时针转动坐标轴90度
+ */
+function increaseRotate() {
+  ctx.rotate(Math.PI * .5);
+  currentRotate = (currentRotate + 1) % 4;
+}
+
+/**
+ * 逆时针转动坐标轴90度
+ */
+function decreaseRotate() {
+  ctx.rotate(Math.PI * -.5);
+  currentRotate = (currentRotate - 1) % 4;
+}
+
+insertWord();
+increaseRotate();
+insertWord();
+insertWord();
+insertWord();
+increaseRotate();
+insertWord();
+insertWord();
+insertWord();
+// increaseRotate();
+insertWord();
+insertWord();
+increaseRotate();
+insertWord();
+insertWord();
+insertWord();
+insertWord();
+decreaseRotate();
+insertWord();
+insertWord();
+
+$canvas.setAttribute('style', 'transform: rotate(180deg)');
 
