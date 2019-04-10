@@ -2,6 +2,7 @@ import './index.css';
 import { getColor } from './src/color';
 import { getFontSize } from './src/font-size';
 import { getText } from './src/text';
+import { random } from './src/utils';
 
 const $canvas: HTMLCanvasElement = document.querySelector('#app');
 
@@ -32,8 +33,8 @@ type Rect = {
 }
 
 let lastRect = {
-  x: 100,
-  y: 100,
+  x: 0,
+  y: 0,
   width: 0,
   height: 0,
   rotate: 0
@@ -76,8 +77,7 @@ function getPosition(w: number, h: number): Point {
       x: lastRect.y + 10,
       y: -1 * lastRect.x
     }
-  } else if (rotate - currentRotate === 1) {
-    console.log('lllll', lastRect.width);
+  } else if (rotate - currentRotate === 1  || rotate - currentRotate === -3) {
     return {
       x: -1 * (lastRect.y + w),
       y: lastRect.x + lastRect.width
@@ -119,9 +119,16 @@ function insertWord() {
 }
 
 function rotate() {
-  $canvas.setAttribute('style', 'transform: rotate(180deg)');
-  ctx.rotate(Math.PI * .5);
-  currentRotate += 1
+  if (currentRotate === 3) {
+    decreaseRotate();
+  } else if (currentRotate === 0) {
+    increaseRotate();
+  } else {
+    const r = random() ? increaseRotate : decreaseRotate;
+    r();
+  }
+  const deg = currentRotate * -90
+  $canvas.setAttribute('style', `transform: rotate(${deg}deg)`);
 }
 
 /**
@@ -130,6 +137,7 @@ function rotate() {
 function increaseRotate() {
   ctx.rotate(Math.PI * .5);
   currentRotate = (currentRotate + 1) % 4;
+  console.log('current totate', currentRotate);
 }
 
 /**
@@ -137,29 +145,26 @@ function increaseRotate() {
  */
 function decreaseRotate() {
   ctx.rotate(Math.PI * -.5);
-  currentRotate = (currentRotate - 1) % 4;
+  currentRotate = (currentRotate + 3) % 4;
+  console.log('current totate', currentRotate);
 }
 
-insertWord();
-increaseRotate();
-insertWord();
-insertWord();
-insertWord();
-increaseRotate();
-insertWord();
-insertWord();
-insertWord();
-// increaseRotate();
-insertWord();
-insertWord();
-increaseRotate();
-insertWord();
-insertWord();
-insertWord();
-insertWord();
-decreaseRotate();
-insertWord();
-insertWord();
+function run(): void {
+  let times = 15;
+  
+  const step = () => {
+    insertWord();
+    if (random(.3)) {
+      rotate();
+    }
 
-$canvas.setAttribute('style', 'transform: rotate(180deg)');
+    if (--times > 0) {
+      setTimeout(step, 1500);
+    }
+  }
+
+  step();
+}
+
+run();
 
