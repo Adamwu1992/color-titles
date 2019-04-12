@@ -73,6 +73,6 @@ export class Stage {
   }
 
   insert(text: string, fontSize: number, color: string) {
-
+    // TODO:
   }
 }
