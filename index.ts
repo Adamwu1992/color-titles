@@ -2,7 +2,7 @@ import './index.css';
 import { getColor } from './src/color';
 import { getFontSize } from './src/font-size';
 import { getText } from './src/text';
-import { random } from './src/utils';
+import { random, deley } from './src/utils';
 
 const $canvas: HTMLCanvasElement = document.querySelector('#app');
 
@@ -118,7 +118,7 @@ function insertWord() {
   console.log(text, lastRect, text);
 }
 
-function rotate() {
+function rotate(): Promise<void> {
   if (currentRotate === 3) {
     decreaseRotate();
   } else if (currentRotate === 0) {
@@ -127,8 +127,9 @@ function rotate() {
     const r = random() ? increaseRotate : decreaseRotate;
     r();
   }
-  const deg = currentRotate * -90
-  $canvas.setAttribute('style', `transform: rotate(${deg}deg)`);
+  // const deg = currentRotate * -90
+  // $canvas.setAttribute('style', `transform: rotate(${deg}deg)`);
+  return deley();
 }
 
 /**
@@ -152,10 +153,12 @@ function decreaseRotate() {
 function run(): void {
   let times = 15;
   
-  const step = () => {
-    insertWord();
+  const step = async () => {
     if (random(.3)) {
-      rotate();
+      await rotate();
+      insertWord();
+    } else {
+      insertWord();
     }
 
     if (--times > 0) {

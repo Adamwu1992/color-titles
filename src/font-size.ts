@@ -1,6 +1,6 @@
 export type FontSize = number;
 
-const steps: Array<FontSize> = [5, 10, 15];
+const steps: FontSize[] = [5, 10, 15];
 
 let last = 40;
 let op = Math.random() > .5 ? 1 : -1;
