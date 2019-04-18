@@ -112,7 +112,7 @@ export class Stage {
    * 批量插入文本
    * @param textRects 文本列表
    */
-  public bashInsert(textRects: Text[]) {
+  public batchInsert(textRects: Text[]) {
     const stage = this;
     async function walk(i: number = 0) {
       await doRotate();

@@ -18,4 +18,4 @@ while (i++ < sum) {
   texts.push(new Text(getText(), getFontSize(), getColor()));
 }
 
-stage.bashInsert(texts);
+stage.batchInsert(texts);
