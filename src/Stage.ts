@@ -1,3 +1,6 @@
+import { Text } from './Text';
+import { random, deley } from './utils';
+
 export type Angle = 0 | 1 | 2 | 3;
 
 export interface IRect {
@@ -20,6 +23,8 @@ export class Stage {
   public offsetY = 0;
   // 坐标旋转角度
   public angle: Angle = 0;
+  // 画布旋转角度
+  public canvasAngle: number = 0;
 
   // 上一个文本框
   private lastRect: IRect = {
@@ -74,6 +79,13 @@ export class Stage {
     this.ctx.rotate(deg);
     const currentAngle = this.angle as number;
     this.angle = ((currentAngle + direction + 4) % 4) as Angle;
+
+    if (direction > 0) {
+      this.canvasAngle -= 90;
+    } else {
+      this.canvasAngle += 90;
+    }
+    this.$canvas.setAttribute('style', `transform: rotate(${this.canvasAngle}deg)`);
   }
 
   /**
@@ -94,6 +106,33 @@ export class Stage {
     this.ctx.fillText(text, x, y);
 
     this.lastRect = { x, y, width, height, angle: this.angle };
+  }
+
+  /**
+   * 批量插入文本
+   * @param textRects 文本列表
+   */
+  public bashInsert(textRects: Text[]) {
+    const stage = this;
+    async function walk(i: number = 0) {
+      await doRotate();
+      const text = textRects[i];
+      stage.insert(text.text, text.fontSize, text.color);
+      if (i < textRects.length - 1) {
+        setTimeout(walk, 800, i + 1);
+      }
+    }
+
+    async function doRotate() {
+      if (random()) {
+        const d = random() ? 1 : -1;
+        stage.rotate(d);
+        await deley(800);
+      }
+    }
+
+    walk();
+
   }
 
   /**

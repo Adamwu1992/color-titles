@@ -10,5 +10,5 @@ body {
 }
 
 canvas {
-  transition: transform 1s;
+  transition: transform 0.8s;
 }
