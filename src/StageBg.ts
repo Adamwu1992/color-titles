@@ -19,6 +19,8 @@ export class StageBg {
 
   constructor(el: HTMLCanvasElement, width: number, height: number) {
 
+    console.log('init', width, height);
+
     el.setAttribute('width', `${width}px`);
     el.setAttribute('height', `${height}px`);
 
@@ -36,8 +38,8 @@ export class StageBg {
       rotate = this.rotate,
       scale = this.scale,
     } = t;
-    const stlye = `transform: translate(${offsetX}px, ${offsetY}px) rotate(${rotate}deg) scale(${scale})`;
-    this.$canvas.setAttribute('style', stlye);
+    const style = `transform: translate(${offsetX}px, ${offsetY}px) rotate(${rotate}deg) scale(${scale})`;
+    this.$canvas.setAttribute('style', style);
 
     this.offsetX = offsetX;
     this.offsetY = offsetY;

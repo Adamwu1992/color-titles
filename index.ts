@@ -7,7 +7,7 @@ const $el = document.querySelector('#app') as HTMLCanvasElement;
 
 const bg = new StageBg($el, document.body.clientWidth, document.body.clientHeight);
 
-const stage = new Stage(document.body.clientWidth, document.body.clientHeight);
+const stage = new Stage();
 
 stage.mount(bg);
 
@@ -21,7 +21,7 @@ while (i++ < sum) {
 stage.batchInsert(texts);
 
 // stage.rotate();
-// stage.insert(getRandomText());
+stage.insert(getRandomText());
 // stage.rotate();
 // stage.insert(getRandomText());
 // stage.insert(getRandomText());

@@ -16,9 +16,6 @@ export type Position = [number, number];
 
 export class Stage {
 
-  // 画布尺寸
-  public width: number;
-  public height: number;
   // 坐标轴偏移
   public offsetX = 0;
   public offsetY = 0;
@@ -42,11 +39,6 @@ export class Stage {
 
   private ctx: CanvasRenderingContext2D;
 
-  constructor(width: number, height: number) {
-    this.width = width;
-    this.height = height;
-  }
-
   /**
    * 挂载到canvas节点上
    * @param el 指定的canvas节点
@@ -55,12 +47,10 @@ export class Stage {
 
     this.canvas = bg;
     this.ctx = bg.ctx;
-    this.width = bg.W;
-    this.height = bg.H;
 
     // 坐标系居中
-    this.translate(this.width / 2, this.height / 2);
-    console.log('Stage: ', this.width, this.height);
+    this.translate(this.canvas.W / 2, this.canvas.H / 2);
+    console.log('Stage: ', this.canvas);
   }
 
   /**
@@ -117,8 +107,8 @@ export class Stage {
     this.ctx.restore();
 
     // 检查文本所处屏幕位置
-    const offsetX = this.width / 2 - width / 2 - this.offsetX - x;
-    const offsetY = this.height / 2 + height / 2 - this.offsetY - y;
+    const offsetX = this.canvas.W / 2 - width / 2 - this.offsetX - x;
+    const offsetY = this.canvas.H / 2 + height / 2 - this.offsetY - y;
     this.canvas.transform({ offsetX, offsetY });
 
     this.lastRect = { x, y: y + 5, width, height, angle: this.angle };
