@@ -1,3 +1,4 @@
+import { deley } from "./utils";
 
 export interface ITransform {
   offsetX?: number;
@@ -31,7 +32,7 @@ export class StageBg {
     this.ctx = el.getContext('2d');
   }
 
-  public transform(t: ITransform) {
+  public async transform(t: ITransform) {
     const {
       offsetX = this.offsetX,
       offsetY = this.offsetY,
@@ -45,6 +46,7 @@ export class StageBg {
     this.offsetY = offsetY;
     this.scale = scale;
     this.rotate = rotate;
+    await deley(1000);
   }
 
 }

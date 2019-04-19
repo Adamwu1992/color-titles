@@ -1,6 +1,6 @@
 import { Text } from './Text';
 import { StageBg } from './StageBg';
-import { random, deley } from './utils';
+import { random, deley, pick } from './utils';
 
 export type Angle = 0 | 1 | 2 | 3;
 
@@ -54,42 +54,16 @@ export class Stage {
   }
 
   /**
-   * 移动坐标系
-   * @param offsetX X偏移
-   * @param offsetY Y偏移
-   */
-  public translate(offsetX: number, offsetY: number) {
-    this.ctx.translate(offsetX, offsetY);
-    this.offsetX += offsetX;
-    this.offsetY += offsetY;
-    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
-  }
-
-  /**
-   * 旋转坐标系
-   * @param direction 1: 顺时针 -1: 逆时针
-   */
-  public rotate(direction = 1) {
-    const deg = Math.PI * direction * .5;
-    this.ctx.rotate(deg);
-    const currentAngle = this.angle as number;
-    this.angle = ((currentAngle + direction + 4) % 4) as Angle;
-
-    if (direction > 0) {
-      this.canvasAngle -= 90;
-    } else {
-      this.canvasAngle += 90;
-    }
-    this.canvas.transform({ rotate: this.canvasAngle });
-    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
-  }
-
-  /**
    * 插入文本
    * @param text
+   * @roll 是否旋转 -1 逆时针；0 不旋转；1 顺时针
    */
-  public insert(text: Text) {
+  public async insert(text: Text, roll?: -1 | 0 | 1) {
     const { value, fontSize, color } = text;
+    if (roll === undefined) {
+      roll = pick([-1, 0, 1]);
+    }
+    this.rotate(roll);
     this.ctx.save();
     this.ctx.font = `${fontSize}px Yahei`;
     this.ctx.fillStyle = color;
@@ -99,17 +73,17 @@ export class Stage {
     const height = fontSize;
     const [x, y] = this.nextPosition(width, height);
 
+    // 检查文本所处屏幕位置
+    const offsetX = this.canvas.W / 2 - width / 2 - this.offsetX - x;
+    const offsetY = this.canvas.H / 2 + height / 2 - this.offsetY - y;
+    await this.canvas.transform({ offsetX, offsetY });
+
     this.ctx.strokeStyle = '#fff';
     this.ctx.strokeRect(x, y - height + 5, width, height);
 
     this.ctx.fillText(value, x, y);
 
     this.ctx.restore();
-
-    // 检查文本所处屏幕位置
-    const offsetX = this.canvas.W / 2 - width / 2 - this.offsetX - x;
-    const offsetY = this.canvas.H / 2 + height / 2 - this.offsetY - y;
-    this.canvas.transform({ offsetX, offsetY });
 
     this.lastRect = { x, y: y + 5, width, height, angle: this.angle };
     console.log('inserted', this.lastRect);
@@ -122,22 +96,47 @@ export class Stage {
   public batchInsert(textRects: Text[]) {
     const stage = this;
     async function walk(i: number = 0) {
-      await doRotate();
       const text = textRects[i];
-      stage.insert(text);
+      await stage.insert(text);
       if (i < textRects.length - 1) {
         setTimeout(walk, 800, i + 1);
       }
     }
-
-    async function doRotate() {
-      if (random()) {
-        const d = random() ? 1 : -1;
-        stage.rotate(d);
-        await deley(800);
-      }
-    }
     walk();
+  }
+
+  /**
+   * 移动坐标系
+   * @param offsetX X偏移
+   * @param offsetY Y偏移
+   */
+  private translate(offsetX: number, offsetY: number) {
+    this.ctx.translate(offsetX, offsetY);
+    this.offsetX += offsetX;
+    this.offsetY += offsetY;
+    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
+  }
+
+  /**
+   * 旋转坐标系
+   * @param direction 1: 顺时针 -1: 逆时针
+   */
+  private rotate(direction = 1) {
+    if (!direction) {
+      return;
+    }
+    const deg = Math.PI * direction * .5;
+    this.ctx.rotate(deg);
+    const currentAngle = this.angle as number;
+    this.angle = ((currentAngle + direction + 4) % 4) as Angle;
+
+    if (direction > 0) {
+      this.canvasAngle -= 90;
+    } else {
+      this.canvasAngle += 90;
+    }
+    this.canvas.transform({ rotate: this.canvasAngle });
+    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
   }
 
   /**

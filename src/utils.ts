@@ -15,3 +15,14 @@ export function deley(t: number = 1000): Promise<void> {
     setTimeout(resolve, t);
   });
 }
+
+/**
+ * 从给定的数组组随机返回一个成员
+ * @param list
+ */
+export function pick<T>(list: T[]): T {
+  if (!list || !list.length) { return; }
+  const len = list.length;
+  const index = Math.floor(Math.random() * len);
+  return list[index];
+}

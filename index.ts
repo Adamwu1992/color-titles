@@ -11,7 +11,7 @@ const stage = new Stage();
 
 stage.mount(bg);
 
-const sum = 15;
+const sum = 5;
 let i = 0;
 const texts: Text[] = [];
 while (i++ < sum) {
@@ -21,7 +21,7 @@ while (i++ < sum) {
 stage.batchInsert(texts);
 
 // stage.rotate();
-stage.insert(getRandomText());
+// stage.insert(getRandomText());
 // stage.rotate();
 // stage.insert(getRandomText());
 // stage.insert(getRandomText());

@@ -10,6 +10,7 @@
     "precommit-msg": "echo '🔨 Pre-commit checking...' && exit 0"
   },
   "pre-commit": [
+    "precommit-msg",
     "lint"
   ],
   "keywords": [
