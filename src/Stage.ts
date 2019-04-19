@@ -1,4 +1,5 @@
 import { Text } from './Text';
+import { StageBg } from './StageBg';
 import { random, deley } from './utils';
 
 export type Angle = 0 | 1 | 2 | 3;
@@ -21,21 +22,24 @@ export class Stage {
   // 坐标轴偏移
   public offsetX = 0;
   public offsetY = 0;
+
   // 坐标旋转角度
   public angle: Angle = 0;
   // 画布旋转角度
   public canvasAngle: number = 0;
 
-  // 上一个文本框
-  private lastRect: IRect = {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-    angle: this.angle,
-  };
+  private canvas: StageBg;
 
-  private $canvas: HTMLCanvasElement;
+  private rectList: IRect[] = [];
+  // 上一个文本框
+  get lastRect(): IRect {
+    const l = this.rectList.length;
+    return this.rectList[l - 1];
+  }
+  set lastRect(rect: IRect) {
+    this.rectList.push(rect);
+  }
+
   private ctx: CanvasRenderingContext2D;
 
   constructor(width: number, height: number) {
@@ -47,16 +51,16 @@ export class Stage {
    * 挂载到canvas节点上
    * @param el 指定的canvas节点
    */
-  public mount(el: HTMLCanvasElement): void {
-    this.$canvas = el;
+  public mount(bg: StageBg): void {
 
-    this.$canvas.setAttribute("width", `${this.width}`);
-    this.$canvas.setAttribute("height", `${this.height}`);
-
-    this.ctx = this.$canvas.getContext("2d");
+    this.canvas = bg;
+    this.ctx = bg.ctx;
+    this.width = bg.W;
+    this.height = bg.H;
 
     // 坐标系居中
     this.translate(this.width / 2, this.height / 2);
+    console.log('Stage: ', this.width, this.height);
   }
 
   /**
@@ -68,6 +72,7 @@ export class Stage {
     this.ctx.translate(offsetX, offsetY);
     this.offsetX += offsetX;
     this.offsetY += offsetY;
+    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
   }
 
   /**
@@ -85,27 +90,39 @@ export class Stage {
     } else {
       this.canvasAngle += 90;
     }
-    this.$canvas.setAttribute('style', `transform: rotate(${this.canvasAngle}deg)`);
+    this.canvas.transform({ rotate: this.canvasAngle });
+    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
   }
 
   /**
    * 插入文本
-   * @param text 文本内容
-   * @param fontSize 字体大小
-   * @param color 字体颜色
+   * @param text
    */
-  public insert(text: string, fontSize: number, color: string) {
+  public insert(text: Text) {
+    const { value, fontSize, color } = text;
     this.ctx.save();
     this.ctx.font = `${fontSize}px Yahei`;
     this.ctx.fillStyle = color;
 
-    const { width } = this.ctx.measureText(text);
+    let { width } = this.ctx.measureText(value);
+    width = Math.floor(width);
     const height = fontSize;
     const [x, y] = this.nextPosition(width, height);
 
-    this.ctx.fillText(text, x, y);
+    this.ctx.strokeStyle = '#fff';
+    this.ctx.strokeRect(x, y - height + 5, width, height);
 
-    this.lastRect = { x, y, width, height, angle: this.angle };
+    this.ctx.fillText(value, x, y);
+
+    this.ctx.restore();
+
+    // 检查文本所处屏幕位置
+    const offsetX = this.width / 2 - width / 2 - this.offsetX - x;
+    const offsetY = this.height / 2 + height / 2 - this.offsetY - y;
+    this.canvas.transform({ offsetX, offsetY });
+
+    this.lastRect = { x, y: y + 5, width, height, angle: this.angle };
+    console.log('inserted', this.lastRect);
   }
 
   /**
@@ -117,7 +134,7 @@ export class Stage {
     async function walk(i: number = 0) {
       await doRotate();
       const text = textRects[i];
-      stage.insert(text.text, text.fontSize, text.color);
+      stage.insert(text);
       if (i < textRects.length - 1) {
         setTimeout(walk, 800, i + 1);
       }
@@ -130,9 +147,7 @@ export class Stage {
         await deley(800);
       }
     }
-
     walk();
-
   }
 
   /**
@@ -141,26 +156,25 @@ export class Stage {
    * @param h 下一个文本框的高度
    */
   private nextPosition(w: number, h: number): Position {
-    const { angle } = this.lastRect;
-    if (angle === this.angle) {
-      return [
-        this.lastRect.x,
-        this.lastRect.y + h,
-      ];
+    const lastRect = this.lastRect || {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+      angle: 0,
+    };
+    if (lastRect.angle === this.angle) {
+      return [lastRect.x, lastRect.y + h];
     }
-    if (this.angle - angle === 1 || this.angle - angle === -3) {
+    if (this.angle - lastRect.angle === 1 || this.angle - lastRect.angle === -3) {
       // 从0度转到90时
-      // 原来矩形的y坐标是新矩形的x坐标，+10边距
-      // 原来矩形的x坐标和新矩形的y坐标根据原y轴对称
-      return [
-        this.lastRect.y + 10,
-        -1 * this.lastRect.x,
-      ];
+      return [lastRect.y, -1 * lastRect.x];
     }
-    if (angle - this.angle === 1  || angle - this.angle === -3) {
+    if (lastRect.angle - this.angle === 1  || lastRect.angle - this.angle === -3) {
+      // 逆时针转90度
       return [
-        -1 * (this.lastRect.y + w),
-        this.lastRect.x + this.lastRect.width,
+        -1 * (lastRect.y + w),
+        lastRect.x + lastRect.width,
       ];
     }
     return [0, 0];
