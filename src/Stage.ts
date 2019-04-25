@@ -88,9 +88,11 @@ export class Stage {
 
     this.ctx.restore();
 
-    this.lastRect = { x, y: y + this.lineOffset, width, height, angle: this.angle };
-    console.log(`inserted ${text.value}`, this.lastRect);
-    console.log('is out bound: ', this.isOutBounds(this.lastRect));
+    const rect = { x, y: y + this.lineOffset, width, height, angle: this.angle };
+    console.log('is covered before', this.isCoverBefore(rect));
+    console.log(`inserted ${text.value}`, rect);
+    console.log('is out bound: ', this.isOutBounds(rect));
+    this.lastRect = rect;
   }
 
   /**
@@ -121,6 +123,53 @@ export class Stage {
       Math.abs(x) > boundW ||
       y > boundH ||
       Math.abs(y - height) > boundH;
+  }
+
+  /**
+   * 检查两个文本框是否相互覆盖
+   * @param target
+   */
+  private isCoverBefore(target: IRect) {
+    function convertAngle(rect: IRect) {
+      if (rect.angle === 0) {
+        return rect;
+      }
+      const { x, y, width, height } = rect;
+      if (rect.angle === 1) {
+        return {
+          x: -y,
+          y: x + width,
+          width: height,
+          height: width,
+          angle: 0,
+        };
+      } else if (rect.angle === 2) {
+        return {
+          x: -(x + width),
+          y: -(y - height),
+          width,
+          height,
+          angle: 0,
+        };
+      } else {
+        return {
+          x: y - height,
+          y: -x,
+          width: height,
+          height: width,
+          angle: 0,
+        };
+      }
+    }
+    function isCovered(rectA: IRect, rectB: IRect) {
+      const a = convertAngle(rectA);
+      const b = convertAngle(rectB);
+      // max shape: [top, bottom, left, right]
+      const maxA = [a.y + a.height, a.y, a.x, a.x + a.width];
+      const maxB = [b.y + b.height, b.y, b.x, b.x + b.width];
+      return maxA[0] < maxB[1] || maxA[2] > maxB[4];
+    }
+    return this.rectList.every((r) => !isCovered(r, target));
   }
 
   /**
