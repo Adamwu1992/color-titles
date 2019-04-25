@@ -18,3 +18,6 @@ canvas {
   border-top-color: #c378c1;
   border-bottom-color: #c378c1;
 }
+.animate {
+  transition: transform 0.8s;
+}

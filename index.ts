@@ -11,7 +11,7 @@ const stage = new Stage();
 
 stage.mount(bg);
 
-const sum = 13;
+const sum = 3;
 let i = 0;
 const texts: Text[] = [];
 while (i++ < sum) {
