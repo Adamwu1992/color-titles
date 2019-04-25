@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack-dev-server",
     "lint": "tslint --fix -c ./tslint.json 'src/**/*.ts'",
-    "precommit-msg": "echo '🔨 Pre-commit checking...' && exit 0"
+    "precommit-msg": "echo ' 🔨 Pre-commit checking...' && exit 0"
   },
   "pre-commit": [
     "precommit-msg",

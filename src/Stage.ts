@@ -39,6 +39,8 @@ export class Stage {
 
   private ctx: CanvasRenderingContext2D;
 
+  private lineOffset: number = 6;
+
   /**
    * 挂载到canvas节点上
    * @param el 指定的canvas节点
@@ -79,14 +81,16 @@ export class Stage {
     await this.canvas.transform({ offsetX, offsetY });
 
     this.ctx.strokeStyle = '#fff';
-    this.ctx.strokeRect(x, y - height + 5, width, height);
+    // 矩形框的位置下沉
+    this.ctx.strokeRect(x, y - height + this.lineOffset, width, height);
 
     this.ctx.fillText(value, x, y);
 
     this.ctx.restore();
 
-    this.lastRect = { x, y: y + 5, width, height, angle: this.angle };
-    console.log('inserted', this.lastRect);
+    this.lastRect = { x, y: y + this.lineOffset, width, height, angle: this.angle };
+    console.log(`inserted ${text.value}`, this.lastRect);
+    console.log('is out bound: ', this.isOutBounds(this.lastRect));
   }
 
   /**
@@ -103,6 +107,20 @@ export class Stage {
       }
     }
     walk();
+  }
+
+  /**
+   * 检查文本框是否越界
+   * @param rect
+   */
+  private isOutBounds(rect: IRect) {
+    const { x, y, width, height } = rect;
+    const boundW = this.canvas.W / 2;
+    const boundH = this.canvas.H / 2;
+    return x + width > boundW ||
+      Math.abs(x) > boundW ||
+      y > boundH ||
+      Math.abs(y - height) > boundH;
   }
 
   /**
@@ -136,7 +154,7 @@ export class Stage {
       this.canvasAngle += 90;
     }
     this.canvas.transform({ rotate: this.canvasAngle });
-    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
+    console.log('Stage coordinate: ', this.offsetX, this.offsetY, this.angle);
   }
 
   /**
@@ -153,17 +171,17 @@ export class Stage {
       angle: 0,
     };
     if (lastRect.angle === this.angle) {
-      return [lastRect.x, lastRect.y + h];
+      return [lastRect.x, lastRect.y + h - this.lineOffset];
     }
     if (this.angle - lastRect.angle === 1 || this.angle - lastRect.angle === -3) {
       // 从0度转到90时
-      return [lastRect.y, -1 * lastRect.x];
+      return [lastRect.y, -1 * (lastRect.x + this.lineOffset)];
     }
     if (lastRect.angle - this.angle === 1  || lastRect.angle - this.angle === -3) {
       // 逆时针转90度
       return [
         -1 * (lastRect.y + w),
-        lastRect.x + lastRect.width,
+        lastRect.x + lastRect.width - this.lineOffset,
       ];
     }
     return [0, 0];
