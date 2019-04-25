@@ -11,4 +11,10 @@ body {
 
 canvas {
   transition: transform 0.8s;
+  background-color: #635959;
+  border: 5px solid;
+  border-left-color: #aac378;
+  border-right-color: #aac378;
+  border-top-color: #c378c1;
+  border-bottom-color: #c378c1;
 }

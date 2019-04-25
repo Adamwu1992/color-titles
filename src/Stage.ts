@@ -1,16 +1,9 @@
 import { Text } from './Text';
 import { StageBg } from './StageBg';
-import { random, deley, pick } from './utils';
+import { TextRect } from './TextRect';
+import { pick } from './utils';
 
 export type Angle = 0 | 1 | 2 | 3;
-
-export interface IRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  angle: Angle;
-}
 
 export type Position = [number, number];
 
@@ -27,13 +20,13 @@ export class Stage {
 
   private canvas: StageBg;
 
-  private rectList: IRect[] = [];
+  private rectList: TextRect[] = [];
   // 上一个文本框
-  get lastRect(): IRect {
+  get lastRect(): TextRect {
     const l = this.rectList.length;
     return this.rectList[l - 1];
   }
-  set lastRect(rect: IRect) {
+  set lastRect(rect: TextRect) {
     this.rectList.push(rect);
   }
 
@@ -51,7 +44,11 @@ export class Stage {
     this.ctx = bg.ctx;
 
     // 坐标系居中
-    this.translate(this.canvas.W / 2, this.canvas.H / 2);
+    const offsetX = this.canvas.W / 2;
+    const offsetY = this.canvas.H / 2;
+    this.ctx.translate(offsetX, offsetY);
+    this.offsetX += offsetX;
+    this.offsetY += offsetY;
     console.log('Stage: ', this.canvas);
   }
 
@@ -80,7 +77,14 @@ export class Stage {
     const offsetY = this.canvas.H / 2 + height / 2 - this.offsetY - y;
     await this.canvas.transform({ offsetX, offsetY });
 
-    this.ctx.strokeStyle = '#fff';
+    const rect = new TextRect(x, y + this.lineOffset, width, height, this.angle);
+    const isOutBounds = this.isOutBounds(rect);
+    const isCovered = this.isCoverBefore(rect);
+    console.log(`${text.value}: `, rect);
+    console.log(`${text.value} is out bound: `, isOutBounds);
+    console.log(`${text.value} is covered before: `, isCovered);
+
+    this.ctx.strokeStyle = isOutBounds ? '#ff0000' : '#fff';
     // 矩形框的位置下沉
     this.ctx.strokeRect(x, y - height + this.lineOffset, width, height);
 
@@ -88,10 +92,6 @@ export class Stage {
 
     this.ctx.restore();
 
-    const rect = { x, y: y + this.lineOffset, width, height, angle: this.angle };
-    console.log('is covered before', this.isCoverBefore(rect));
-    console.log(`inserted ${text.value}`, rect);
-    console.log('is out bound: ', this.isOutBounds(rect));
     this.lastRect = rect;
   }
 
@@ -115,8 +115,8 @@ export class Stage {
    * 检查文本框是否越界
    * @param rect
    */
-  private isOutBounds(rect: IRect) {
-    const { x, y, width, height } = rect;
+  private isOutBounds(rect: TextRect) {
+    const { x, y, width, height } = rect.convertAngle();
     const boundW = this.canvas.W / 2;
     const boundH = this.canvas.H / 2;
     return x + width > boundW ||
@@ -129,59 +129,16 @@ export class Stage {
    * 检查两个文本框是否相互覆盖
    * @param target
    */
-  private isCoverBefore(target: IRect) {
-    function convertAngle(rect: IRect) {
-      if (rect.angle === 0) {
-        return rect;
-      }
-      const { x, y, width, height } = rect;
-      if (rect.angle === 1) {
-        return {
-          x: -y,
-          y: x + width,
-          width: height,
-          height: width,
-          angle: 0,
-        };
-      } else if (rect.angle === 2) {
-        return {
-          x: -(x + width),
-          y: -(y - height),
-          width,
-          height,
-          angle: 0,
-        };
-      } else {
-        return {
-          x: y - height,
-          y: -x,
-          width: height,
-          height: width,
-          angle: 0,
-        };
-      }
-    }
-    function isCovered(rectA: IRect, rectB: IRect) {
-      const a = convertAngle(rectA);
-      const b = convertAngle(rectB);
+  private isCoverBefore(target: TextRect) {
+    function isCovered(rectA: TextRect, rectB: TextRect) {
+      const a = rectA.convertAngle();
+      const b = rectB.convertAngle();
       // max shape: [top, bottom, left, right]
       const maxA = [a.y + a.height, a.y, a.x, a.x + a.width];
       const maxB = [b.y + b.height, b.y, b.x, b.x + b.width];
       return maxA[0] < maxB[1] || maxA[2] > maxB[4];
     }
     return this.rectList.every((r) => !isCovered(r, target));
-  }
-
-  /**
-   * 移动坐标系
-   * @param offsetX X偏移
-   * @param offsetY Y偏移
-   */
-  private translate(offsetX: number, offsetY: number) {
-    this.ctx.translate(offsetX, offsetY);
-    this.offsetX += offsetX;
-    this.offsetY += offsetY;
-    console.log('Stage coordinate: ', this.offsetX, this.offsetX, this.angle);
   }
 
   /**
