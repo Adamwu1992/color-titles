@@ -75,6 +75,7 @@ export class StageBg {
       anchorX = x;
       anchorY = y;
       this.transform({ offsetX: this.offsetX + offsetX, offsetY: this.offsetY + offsetY }, true);
+      // TODO:: 修改鼠标样式
     };
     const onMouseUp = (evt: MouseEvent) => {
       console.log('handle mouse up', evt);
